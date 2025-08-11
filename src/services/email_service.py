@@ -24,7 +24,13 @@ class EmailService:
             raise ValueError("SendGrid API key must be set in environment variables")
 
         self.sendgrid_client = SendGridAPIClient(api_key=self.sendgrid_api_key)
-        self.ses_client = boto3.client('ses')
+
+        # Check if we're running against LocalStack
+        endpoint_url = os.environ.get('AWS_ENDPOINT_URL')
+        if endpoint_url:
+            self.ses_client = boto3.client('ses', endpoint_url=endpoint_url)
+        else:
+            self.ses_client = boto3.client('ses')
 
         # Email configuration
         self.from_email = f"aime-{self.environment}@groupize.com"

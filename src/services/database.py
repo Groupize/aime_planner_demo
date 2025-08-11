@@ -18,7 +18,13 @@ class DatabaseService:
 
     def __init__(self):
         """Initialize the database service."""
-        self.dynamodb = boto3.resource('dynamodb')
+        # Check if we're running against LocalStack
+        endpoint_url = os.environ.get('AWS_ENDPOINT_URL')
+        if endpoint_url:
+            self.dynamodb = boto3.resource('dynamodb', endpoint_url=endpoint_url)
+        else:
+            self.dynamodb = boto3.resource('dynamodb')
+
         self.conversation_table_name = os.environ.get('CONVERSATION_TABLE_NAME')
         self.questions_table_name = os.environ.get('QUESTIONS_TABLE_NAME')
 
@@ -91,6 +97,8 @@ class DatabaseService:
                 for question in questions:
                     question_data = question.model_dump()
                     question_data['conversation_id'] = conversation_id
+                    # Rename 'id' to 'question_id' to match table schema
+                    question_data['question_id'] = question_data.pop('id')
                     batch.put_item(Item=question_data)
             return True
         except ClientError as e:
@@ -106,6 +114,9 @@ class DatabaseService:
 
             questions = []
             for item in response.get('Items', []):
+                # Map question_id back to id for the Question model
+                if 'question_id' in item:
+                    item['id'] = item.pop('question_id')
                 questions.append(Question(**item))
 
             # Sort by question ID

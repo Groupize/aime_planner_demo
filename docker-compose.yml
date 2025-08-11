@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   localstack:
     container_name: aime-localstack
     image: localstack/localstack:3.0
+    restart: unless-stopped
     ports:
       - "4566:4566"            # LocalStack Gateway
       - "4510-4559:4510-4559"  # External services port range
@@ -21,13 +20,13 @@ services:
 
       # Data persistence
       - DATA_DIR=/tmp/localstack/data
+      - SKIP_INFRA_DOWNLOADS=1
 
       # Lambda configuration
       - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=60
       - LAMBDA_DOCKER_NETWORK=aime_default
 
     volumes:
-      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./localstack-setup:/etc/localstack/init/ready.d"
     networks:

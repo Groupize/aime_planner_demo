@@ -1,0 +1,8 @@
+{
+  "httpMethod": "POST",
+  "path": "/initiate-bid",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": "{\"event_metadata\":{\"name\":\"Annual Company Retreat 2024\",\"dates\":[\"2024-06-15\",\"2024-06-16\",\"2024-06-17\"],\"event_type\":\"corporate retreat\",\"planner_name\":\"Sarah Johnson\",\"planner_email\":\"sarah.johnson@techcorp.com\",\"planner_phone\":\"+1-555-123-4567\"},\"vendor_info\":{\"name\":\"Mountain View Resort & Spa\",\"email\":\"sales@mountainviewresort.com\",\"service_type\":\"hotel\"},\"questions\":[{\"id\":1,\"text\":\"Do you have availability for our retreat dates (June 15-17, 2024)?\",\"required\":true},{\"id\":2,\"text\":\"What is your group rate per room per night?\",\"required\":true,\"options\":[\"Standard Room\",\"Deluxe Room\",\"Junior Suite\",\"Executive Suite\"]},{\"id\":3,\"text\":\"Do you offer meeting room space and what are the daily rates?\",\"required\":true},{\"id\":4,\"text\":\"What catering options do you provide for group meals?\",\"required\":false,\"options\":[\"Buffet Breakfast\",\"Plated Lunch\",\"Reception Dinner\",\"Coffee Breaks\"]},{\"id\":5,\"text\":\"Do you offer team building activities or can recommend local options?\",\"required\":false},{\"id\":6,\"text\":\"What is your cancellation policy for group bookings?\",\"required\":true},{\"id\":7,\"text\":\"Do you provide shuttle service from the airport?\",\"required\":false},{\"id\":8,\"text\":\"What is the latest date you need a final headcount?\",\"required\":true}],\"callback_data\":{\"rails_request_id\":\"req_retreat_2024_001\",\"planner_id\":1234,\"event_id\":5678,\"urgency\":\"medium\"}}"
+}

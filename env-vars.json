@@ -1,0 +1,14 @@
+{
+  "InitiateBidFunction": {
+    "ENVIRONMENT": "testing",
+    "RAILS_API_BASE_URL": "http://localhost:3000",
+    "RAILS_API_KEY": "test-key",
+    "OPENAI_API_KEY": "test-openai-key",
+    "SENDGRID_API_KEY": "test-sendgrid-key",
+    "CONVERSATION_TABLE_NAME": "testing-aime-conversations",
+    "QUESTIONS_TABLE_NAME": "testing-aime-questions",
+    "AWS_ACCESS_KEY_ID": "test",
+    "AWS_SECRET_ACCESS_KEY": "test",
+    "AWS_DEFAULT_REGION": "us-east-1"
+  }
+}

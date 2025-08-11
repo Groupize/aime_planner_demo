@@ -121,7 +121,7 @@ RAILS_API_BASE_URL=https://api.groupize.com          # production
 **Request Body**:
 ```json
 {
-  "event_metadata": {
+  "**event_metadata**": {
     "name": "Annual Company Retreat",
     "dates": ["2024-06-15", "2024-06-16"],
     "event_type": "corporate retreat",

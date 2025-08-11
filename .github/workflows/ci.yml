@@ -120,7 +120,7 @@ jobs:
 
   security-scan:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && contains(fromJson('["main", "develop", "staging"]'), github.ref_name))
 
     steps:
     - name: Checkout code

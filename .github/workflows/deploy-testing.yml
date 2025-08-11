@@ -1,0 +1,102 @@
+name: Deploy to Testing Environment
+
+on:
+  # push:
+  #   branches: [ develop ]
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  AWS_REGION: us-east-1
+  PYTHON_VERSION: 3.11
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: testing
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        python -m pytest tests/unit/ --cov=src --cov-report=term-missing
+      env:
+        ENVIRONMENT: testing
+        RAILS_API_BASE_URL: ${{ secrets.TESTING_RAILS_API_BASE_URL }}
+        RAILS_API_KEY: ${{ secrets.TESTING_RAILS_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+        CONVERSATION_TABLE_NAME: testing-conversations
+        QUESTIONS_TABLE_NAME: testing-questions
+
+    - name: Setup AWS SAM CLI
+      uses: aws-actions/setup-sam@v2
+      with:
+        use-installer: true
+
+    - name: Configure AWS credentials for Testing
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.TESTING_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.TESTING_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Validate SAM template
+      run: sam validate
+
+    - name: Build SAM application
+      run: sam build --use-container
+
+    - name: Deploy to Testing environment
+      run: |
+        sam deploy \
+          --config-env testing \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset \
+          --stack-name aime-planner-testing \
+          --parameter-overrides \
+            Environment=testing \
+            RailsApiBaseUrl="${{ secrets.TESTING_RAILS_API_BASE_URL }}" \
+            RailsApiKey="${{ secrets.TESTING_RAILS_API_KEY }}" \
+            OpenAIApiKey="${{ secrets.OPENAI_API_KEY }}" \
+            SendGridApiKey="${{ secrets.SENDGRID_API_KEY }}"
+
+    - name: Run integration tests
+      run: |
+        echo "🧪 Running post-deployment integration tests"
+        python scripts/validate-setup.py
+      env:
+        ENVIRONMENT: testing
+        RAILS_API_BASE_URL: ${{ secrets.TESTING_RAILS_API_BASE_URL }}
+        RAILS_API_KEY: ${{ secrets.TESTING_RAILS_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Testing deployment successful"
+        else
+          echo "❌ Testing deployment failed"
+          exit 1
+        fi

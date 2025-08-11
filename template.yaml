@@ -1,0 +1,194 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AIME Planner Chatbot - Event Service Negotiation System
+
+Parameters:
+  Environment:
+    Type: String
+    Default: testing
+    AllowedValues: [testing, staging, production]
+    Description: Environment name
+
+  RailsApiBaseUrl:
+    Type: String
+    Description: Base URL for the Rails API
+    Default: https://api-testing.groupize.com
+
+  RailsApiKey:
+    Type: String
+    Description: API key for Rails backend
+    NoEcho: true
+
+  OpenAIApiKey:
+    Type: String
+    Description: OpenAI API key for LLM processing
+    NoEcho: true
+
+  SendGridApiKey:
+    Type: String
+    Description: SendGrid API key for email sending
+    NoEcho: true
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.11
+    MemorySize: 512
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        RAILS_API_BASE_URL: !Ref RailsApiBaseUrl
+        RAILS_API_KEY: !Ref RailsApiKey
+        OPENAI_API_KEY: !Ref OpenAIApiKey
+        SENDGRID_API_KEY: !Ref SendGridApiKey
+        CONVERSATION_TABLE_NAME: !Ref ConversationTable
+        QUESTIONS_TABLE_NAME: !Ref QuestionsTable
+
+Resources:
+  # DynamoDB Tables
+  ConversationTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${Environment}-aime-conversations"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: conversation_id
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: conversation_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: CreatedAtIndex
+          KeySchema:
+            - AttributeName: created_at
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+  QuestionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${Environment}-aime-questions"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: conversation_id
+          AttributeType: S
+        - AttributeName: question_id
+          AttributeType: N
+      KeySchema:
+        - AttributeName: conversation_id
+          KeyType: HASH
+        - AttributeName: question_id
+          KeyType: RANGE
+
+  # Lambda Functions
+  InitiateBidFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}-aime-initiate-bid"
+      CodeUri: src/
+      Handler: handlers.initiate_bid.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref QuestionsTable
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /initiate-bid
+            Method: post
+
+  ProcessEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}-aime-process-email"
+      CodeUri: src/
+      Handler: handlers.process_email.lambda_handler
+      Timeout: 60
+      MemorySize: 1024
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref QuestionsTable
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: "*"
+      Events:
+        SESInbound:
+          Type: SNS
+          Properties:
+            Topic: !Ref EmailProcessingTopic
+
+  # API Gateway
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "${Environment}-aime-api"
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  # SNS Topic for email processing
+  EmailProcessingTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${Environment}-aime-email-processing"
+
+  # SES Configuration for receiving emails
+  EmailReceiptRuleSet:
+    Type: AWS::SES::ReceiptRuleSet
+    Properties:
+      RuleSetName: !Sub "${Environment}-aime-email-rules"
+
+  EmailReceiptRule:
+    Type: AWS::SES::ReceiptRule
+    Properties:
+      RuleSetName: !Ref EmailReceiptRuleSet
+      Rule:
+        Name: !Sub "${Environment}-aime-inbound-email"
+        Enabled: true
+        Recipients:
+          - !Sub "aime-${Environment}@groupize.com"
+        Actions:
+          - SNSAction:
+              TopicArn: !Ref EmailProcessingTopic
+
+Outputs:
+  ApiGatewayUrl:
+    Description: URL of the API Gateway
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}"
+    Export:
+      Name: !Sub "${Environment}-aime-api-url"
+
+  ConversationTableName:
+    Description: Name of the conversation table
+    Value: !Ref ConversationTable
+    Export:
+      Name: !Sub "${Environment}-aime-conversation-table"
+
+  QuestionsTableName:
+    Description: Name of the questions table
+    Value: !Ref QuestionsTable
+    Export:
+      Name: !Sub "${Environment}-aime-questions-table"

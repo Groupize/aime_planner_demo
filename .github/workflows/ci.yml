@@ -1,0 +1,138 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [ develop, staging, main ]
+  push:
+    branches: [ develop, staging, main ]
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  PYTHON_VERSION: 3.11
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Lint code with flake8
+      run: |
+        # Install flake8 if not in requirements
+        pip install flake8
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+
+    - name: Run unit tests with coverage
+      run: |
+        python -m pytest tests/unit/ \
+          --cov=src \
+          --cov-report=term-missing \
+          --cov-report=xml \
+          --cov-fail-under=80 \
+          --junitxml=test-results.xml
+      env:
+        ENVIRONMENT: testing
+        RAILS_API_BASE_URL: https://api-testing.example.com
+        RAILS_API_KEY: test-api-key
+        OPENAI_API_KEY: test-openai-key
+        SENDGRID_API_KEY: test-sendgrid-key
+        CONVERSATION_TABLE_NAME: test-conversations
+        QUESTIONS_TABLE_NAME: test-questions
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: github.event_name == 'pull_request'
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Validate project setup
+      run: |
+        python scripts/validate-setup.py
+      env:
+        ENVIRONMENT: testing
+        RAILS_API_BASE_URL: https://api-testing.example.com
+        RAILS_API_KEY: test-api-key
+        OPENAI_API_KEY: test-openai-key
+        SENDGRID_API_KEY: test-sendgrid-key
+
+  validate-sam:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup AWS SAM CLI
+      uses: aws-actions/setup-sam@v2
+      with:
+        use-installer: true
+
+    - name: Validate SAM template
+      run: sam validate
+
+    - name: Check SAM configuration
+      run: |
+        if [ -f samconfig.toml ]; then
+          echo "✅ SAM configuration file found"
+          cat samconfig.toml
+        else
+          echo "❌ SAM configuration file missing"
+          exit 1
+        fi
+
+  security-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install security scanning tools
+      run: |
+        pip install safety bandit
+
+    - name: Check for known security vulnerabilities
+      run: |
+        safety check --json || true
+
+    - name: Run static security analysis
+      run: |
+        bandit -r src/ -f json || true
+
+    - name: Scan for secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD

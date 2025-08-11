@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  localstack:
+    container_name: aime-localstack
+    image: localstack/localstack:3.0
+    ports:
+      - "4566:4566"            # LocalStack Gateway
+      - "4510-4559:4510-4559"  # External services port range
+    environment:
+      # LocalStack configuration
+      - DEBUG=1
+      - PERSISTENCE=1
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LOCALSTACK_HOST=localhost
+
+      # AWS service configuration
+      - SERVICES=lambda,dynamodb,apigateway,ses,sns,s3,iam,logs
+      - DEFAULT_REGION=us-east-1
+
+      # Data persistence
+      - DATA_DIR=/tmp/localstack/data
+
+      # Lambda configuration
+      - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=60
+      - LAMBDA_DOCKER_NETWORK=aime_default
+
+    volumes:
+      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack-setup:/etc/localstack/init/ready.d"
+    networks:
+      - aime_default
+
+  # Redis for caching (optional, for future use)
+  redis:
+    container_name: aime-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aime_default
+
+networks:
+  aime_default:
+    driver: bridge
+
+volumes:
+  redis_data:

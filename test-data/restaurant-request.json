@@ -1,0 +1,76 @@
+{
+  "event_metadata": {
+    "name": "Smith-Wilson Wedding Reception",
+    "dates": ["2024-08-24"],
+    "event_type": "wedding reception",
+    "planner_name": "Emily Chen",
+    "planner_email": "emily@elegantevents.com",
+    "planner_phone": "+1-555-987-6543"
+  },
+  "vendor_info": {
+    "name": "The Garden Terrace Restaurant",
+    "email": "events@gardenterrace.com",
+    "service_type": "restaurant"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "text": "Do you have availability for Saturday, August 24th, 2024 for a wedding reception?",
+      "required": true
+    },
+    {
+      "id": 2,
+      "text": "What is your capacity for a seated dinner reception?",
+      "required": true
+    },
+    {
+      "id": 3,
+      "text": "What menu packages do you offer for wedding receptions and what are the per-person rates?",
+      "required": true,
+      "options": ["3-course plated dinner", "5-course tasting menu", "Family-style service", "Buffet service"]
+    },
+    {
+      "id": 4,
+      "text": "Do you have a private dining room or can you provide exclusive use of the restaurant?",
+      "required": true
+    },
+    {
+      "id": 5,
+      "text": "What bar service options do you provide?",
+      "required": false,
+      "options": ["Open bar", "Wine and beer only", "Signature cocktails", "Cash bar"]
+    },
+    {
+      "id": 6,
+      "text": "Do you allow outside cake or dessert, and is there a cutting fee?",
+      "required": false
+    },
+    {
+      "id": 7,
+      "text": "What is your policy on decorations and setup time?",
+      "required": true
+    },
+    {
+      "id": 8,
+      "text": "What is your deposit and payment schedule?",
+      "required": true
+    },
+    {
+      "id": 9,
+      "text": "Do you provide linens, centerpieces, or other table settings?",
+      "required": false
+    },
+    {
+      "id": 10,
+      "text": "What is your cancellation and refund policy?",
+      "required": true
+    }
+  ],
+  "callback_data": {
+    "rails_request_id": "req_wedding_001",
+    "planner_id": 5678,
+    "event_id": 9012,
+    "client_budget": "$15000",
+    "guest_count": 85
+  }
+}

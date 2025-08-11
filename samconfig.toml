@@ -1,0 +1,71 @@
+version = 0.1
+
+[default]
+[default.global]
+[default.global.parameters]
+stack_name = "aime-planner-demo"
+
+[default.build]
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.deploy]
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+s3_prefix = "aime-planner-demo"
+region = "us-east-1"
+image_repositories = []
+
+[testing]
+[testing.global]
+[testing.global.parameters]
+stack_name = "aime-planner-testing"
+
+[testing.deploy]
+[testing.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+resolve_s3 = true
+s3_prefix = "aime-planner-testing"
+region = "us-east-1"
+parameter_overrides = [
+    "Environment=testing",
+    "RailsApiBaseUrl=https://api-testing.groupize.com"
+]
+
+[staging]
+[staging.global]
+[staging.global.parameters]
+stack_name = "aime-planner-staging"
+
+[staging.deploy]
+[staging.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+s3_prefix = "aime-planner-staging"
+region = "us-east-1"
+parameter_overrides = [
+    "Environment=staging",
+    "RailsApiBaseUrl=https://api-staging.groupize.com"
+]
+
+[production]
+[production.global]
+[production.global.parameters]
+stack_name = "aime-planner-production"
+
+[production.deploy]
+[production.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+s3_prefix = "aime-planner-production"
+region = "us-east-1"
+parameter_overrides = [
+    "Environment=production",
+    "RailsApiBaseUrl=https://api.groupize.com"
+]

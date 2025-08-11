@@ -1,0 +1,117 @@
+name: Deploy to Production Environment
+
+on:
+  # push:
+  #   branches: [ main ]
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  AWS_REGION: us-east-1
+  PYTHON_VERSION: 3.11
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run comprehensive tests
+      run: |
+        python -m pytest tests/unit/ --cov=src --cov-report=term-missing --cov-fail-under=80
+      env:
+        ENVIRONMENT: production
+        RAILS_API_BASE_URL: ${{ secrets.PRODUCTION_RAILS_API_BASE_URL }}
+        RAILS_API_KEY: ${{ secrets.PRODUCTION_RAILS_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+        CONVERSATION_TABLE_NAME: production-conversations
+        QUESTIONS_TABLE_NAME: production-questions
+
+    - name: Setup AWS SAM CLI
+      uses: aws-actions/setup-sam@v2
+      with:
+        use-installer: true
+
+    - name: Configure AWS credentials for Production
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.PRODUCTION_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.PRODUCTION_AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Validate SAM template
+      run: sam validate
+
+    - name: Build SAM application
+      run: sam build --use-container
+
+    - name: Production deployment approval
+      run: |
+        echo "🚀 Deploying to PRODUCTION environment"
+        echo "This deployment will update the live production system"
+
+    - name: Deploy to Production environment
+      run: |
+        sam deploy \
+          --config-env production \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset \
+          --stack-name aime-planner-production \
+          --parameter-overrides \
+            Environment=production \
+            RailsApiBaseUrl="${{ secrets.PRODUCTION_RAILS_API_BASE_URL }}" \
+            RailsApiKey="${{ secrets.PRODUCTION_RAILS_API_KEY }}" \
+            OpenAIApiKey="${{ secrets.OPENAI_API_KEY }}" \
+            SendGridApiKey="${{ secrets.SENDGRID_API_KEY }}"
+
+    - name: Run production health checks
+      run: |
+        echo "🏥 Running post-deployment health checks"
+        python scripts/validate-setup.py
+        echo "✅ Production health checks passed"
+      env:
+        ENVIRONMENT: production
+        RAILS_API_BASE_URL: ${{ secrets.PRODUCTION_RAILS_API_BASE_URL }}
+        RAILS_API_KEY: ${{ secrets.PRODUCTION_RAILS_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+
+    - name: Create deployment tag
+      if: success()
+      run: |
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        git tag -a "production-${TIMESTAMP}" -m "Production deployment ${TIMESTAMP}"
+        echo "📦 Created deployment tag: production-${TIMESTAMP}"
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "🎉 Production deployment successful!"
+          echo "AIME Planner is now live in production"
+        else
+          echo "💥 Production deployment failed!"
+          echo "Production environment may be in an inconsistent state"
+          exit 1
+        fi

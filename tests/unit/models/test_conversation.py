@@ -2,6 +2,7 @@
 Unit tests for conversation models.
 """
 
+from datetime import datetime
 from models.conversation import (
     Conversation, Question, EventMetadata, VendorInfo,
     ConversationStatus, EmailExchange

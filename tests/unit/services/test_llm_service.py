@@ -3,6 +3,7 @@ Unit tests for LLM service.
 """
 
 import json
+import pytest
 from unittest.mock import Mock, patch
 from services.llm_service import LLMService
 

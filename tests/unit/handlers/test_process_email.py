@@ -5,7 +5,8 @@ Unit tests for process_email Lambda handler.
 import json
 from unittest.mock import Mock, patch
 
-from handlers.process_email import lambda_handler, process_single_email_record, send_follow_up_email
+from handlers.process_email import lambda_handler, process_single_email_record
+from models.conversation import ConversationStatus, send_follow_up_email
 
 
 class TestProcessEmailHandler:

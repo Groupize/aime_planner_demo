@@ -2,6 +2,7 @@
 Unit tests for Rails API service.
 """
 
+from datetime import datetime
 from unittest.mock import Mock, patch
 import requests
 
@@ -318,7 +319,7 @@ class TestRailsAPIService:
         assert 'T' in timestamp  # ISO format
 
         # Verify it's a valid datetime format
-                parsed = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        parsed = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
         assert isinstance(parsed, datetime)
 
     def test_format_questions_for_rails_with_objects(self, sample_questions):

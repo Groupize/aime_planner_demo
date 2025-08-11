@@ -2,10 +2,12 @@
 Unit tests for database service.
 """
 
-from unittest.mock import Mock, patch
+import pytest
+from unittest.mock import Mock, patch, MagicMock
 from botocore.exceptions import ClientError
 
 from services.database import DatabaseService
+from models.conversation import Conversation, Question
 
 
 class TestDatabaseService:

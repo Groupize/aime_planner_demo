@@ -3,6 +3,7 @@ Unit tests for email service.
 """
 
 import json
+import pytest
 from unittest.mock import Mock, patch
 from botocore.exceptions import ClientError
 

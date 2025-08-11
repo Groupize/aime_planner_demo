@@ -8,6 +8,8 @@ import json
 import os
 import sys
 
+import boto3
+
 # Set environment variables for testing
 os.environ.update({
     'ENVIRONMENT': 'testing',
@@ -25,7 +27,6 @@ os.environ.update({
 })
 
 # Configure boto3 to use LocalStack
-import boto3
 boto3.setup_default_session(
     aws_access_key_id='test',
     aws_secret_access_key='test',

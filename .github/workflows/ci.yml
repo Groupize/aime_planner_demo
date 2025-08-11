@@ -102,6 +102,11 @@ jobs:
 
     - name: Validate SAM template
       run: sam validate
+      env:
+        AWS_DEFAULT_REGION: us-east-1
+        AWS_REGION: us-east-1
+        AWS_ACCESS_KEY_ID: fake-access-key
+        AWS_SECRET_ACCESS_KEY: fake-secret-key
 
     - name: Check SAM configuration
       run: |

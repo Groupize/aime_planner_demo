@@ -3,7 +3,6 @@ Rails API service for communicating with the Ruby on Rails backend.
 """
 
 import os
-import json
 from typing import Dict, List, Optional, Any
 import requests
 from requests.adapters import HTTPAdapter
@@ -40,10 +39,10 @@ class RailsAPIService:
         })
 
     def send_conversation_update(self, conversation_id: str,
-                               status: str,
-                               questions_answered: List[Dict[str, Any]],
-                               is_final: bool = False,
-                               raw_email_content: Optional[str] = None) -> bool:
+                                 status: str,
+                                 questions_answered: List[Dict[str, Any]],
+                                 is_final: bool = False,
+                                 raw_email_content: Optional[str] = None) -> bool:
         """Send conversation update back to Rails API."""
         try:
             payload = {
@@ -91,8 +90,8 @@ class RailsAPIService:
             return None
 
     def notify_conversation_started(self, conversation_id: str,
-                                  vendor_email: str,
-                                  initial_email_sent: bool) -> bool:
+                                    vendor_email: str,
+                                    initial_email_sent: bool) -> bool:
         """Notify Rails API that a conversation has been initiated."""
         try:
             payload = {
@@ -118,9 +117,9 @@ class RailsAPIService:
             return False
 
     def notify_conversation_completed(self, conversation_id: str,
-                                    final_status: str,
-                                    all_answers: List[Dict[str, Any]],
-                                    attempt_count: int) -> bool:
+                                      final_status: str,
+                                      all_answers: List[Dict[str, Any]],
+                                      attempt_count: int) -> bool:
         """Notify Rails API that a conversation has been completed."""
         try:
             payload = {
@@ -147,7 +146,7 @@ class RailsAPIService:
             return False
 
     def report_error(self, conversation_id: str, error_type: str,
-                    error_message: str, context: Optional[Dict[str, Any]] = None) -> bool:
+                     error_message: str, context: Optional[Dict[str, Any]] = None) -> bool:
         """Report an error to Rails API for monitoring."""
         try:
             payload = {

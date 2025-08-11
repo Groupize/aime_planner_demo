@@ -2,11 +2,9 @@
 Unit tests for LLM service.
 """
 
-import pytest
 import json
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from services.llm_service import LLMService
-from models.conversation import Question
 
 
 class TestLLMService:

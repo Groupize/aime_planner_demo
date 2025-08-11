@@ -4,11 +4,10 @@ LLM service for email parsing and response generation using OpenAI.
 
 import os
 import json
-from typing import List, Dict, Tuple, Optional
-import openai
+from typing import List, Tuple
 from openai import OpenAI
 
-from models.conversation import Question, Conversation, VendorInfo, EventMetadata
+from models.conversation import Question, Conversation
 
 
 class LLMService:
@@ -30,8 +29,10 @@ class LLMService:
         questions_text = self._format_questions_for_email(conversation.questions)
 
         prompt = f"""
-        You are a professional event planner writing an email to a vendor to request pricing and availability information.
-        Write a conversational, professional but semi-casual email that clearly indicates you are representing a client in negotiations.
+        You are a professional event planner writing an email to a vendor to
+        request pricing and availability information.
+        Write a conversational, professional but semi-casual email that clearly
+        indicates you are representing a client in negotiations.
 
         Event Details:
         - Event Name: {conversation.event_metadata.name}
@@ -61,7 +62,8 @@ class LLMService:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a professional event planner who writes effective vendor outreach emails."},
+                    {"role": "system",
+                     "content": "You are a professional event planner who writes effective vendor outreach emails."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
@@ -102,14 +104,16 @@ class LLMService:
         5. If a question is not answered, don't include it
 
         Return your response as a JSON array of objects with 'question_id' and 'answer' fields.
-        Example: [{{"question_id": 1, "answer": "We have availability for those dates"}}, {{"question_id": 3, "answer": "$150 per person"}}]
+        Example: [{{"question_id": 1, "answer": "We have availability for those dates"}},
+                  {{"question_id": 3, "answer": "$150 per person"}}]
         """
 
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are an expert at parsing vendor responses and extracting structured information."},
+                    {"role": "system",
+                     "content": "You are an expert at parsing vendor responses and extracting structured information."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
@@ -127,7 +131,7 @@ class LLMService:
             return []
 
     def generate_follow_up_email(self, conversation: Conversation,
-                                unanswered_questions: List[Question]) -> Tuple[str, str]:
+                                  unanswered_questions: List[Question]) -> Tuple[str, str]:
         """Generate a follow-up email for unanswered questions."""
 
         # Get previous exchanges for context
@@ -209,11 +213,13 @@ class LLMService:
 
     def _generate_fallback_initial_email(self, conversation: Conversation) -> Tuple[str, str]:
         """Generate fallback initial email if LLM fails."""
-        subject = f"Pricing Inquiry for {conversation.event_metadata.name} - {conversation.event_metadata.event_type}"
+        subject = (f"Pricing Inquiry for {conversation.event_metadata.name} - "
+                  f"{conversation.event_metadata.event_type}")
 
+        event_dates = ', '.join(conversation.event_metadata.dates)
         body = f"""Hi {conversation.vendor_info.name},
 
-I hope this email finds you well. I'm {conversation.event_metadata.planner_name}, and I'm working with a client to plan their upcoming {conversation.event_metadata.event_type} called "{conversation.event_metadata.name}" scheduled for {', '.join(conversation.event_metadata.dates)}.
+I hope this email finds you well. I'm {conversation.event_metadata.planner_name}, and I'm working with a client to plan their upcoming {conversation.event_metadata.event_type} called "{conversation.event_metadata.name}" scheduled for {event_dates}.
 
 We're exploring {conversation.vendor_info.service_type} options and would love to discuss how you might be able to support this event. Could you please provide information on the following:
 

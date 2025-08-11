@@ -5,8 +5,7 @@ Lambda handler for processing inbound vendor email responses.
 import json
 import os
 import sys
-from typing import Dict, Any, List, Tuple
-from datetime import datetime
+from typing import Dict, Any, List
 
 # Add src directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -211,9 +210,9 @@ def process_single_email_record(record: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def send_follow_up_email(conversation: Conversation,
-                        unanswered_questions: List[Any],
-                        llm_service: LLMService,
-                        email_service: EmailService) -> bool:
+                         unanswered_questions: List[Any],
+                         llm_service: LLMService,
+                         email_service: EmailService) -> bool:
     """Send follow-up email for unanswered questions."""
 
     try:

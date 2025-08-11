@@ -2,12 +2,10 @@
 Unit tests for initiate_bid Lambda handler.
 """
 
-import pytest
 import json
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from handlers.initiate_bid import lambda_handler, validate_request_payload
-from models.conversation import ConversationStatus
 
 
 class TestInitiateBidHandler:
@@ -18,8 +16,8 @@ class TestInitiateBidHandler:
     @patch('handlers.initiate_bid.EmailService')
     @patch('handlers.initiate_bid.DatabaseService')
     def test_lambda_handler_success(self, mock_db_service, mock_email_service,
-                                   mock_llm_service, mock_rails_api,
-                                   sample_lambda_context):
+                                     mock_llm_service, mock_rails_api,
+                                     sample_lambda_context):
         """Test successful bid initiation."""
         # Setup mocks
         mock_db = Mock()
@@ -91,8 +89,8 @@ class TestInitiateBidHandler:
     @patch('handlers.initiate_bid.EmailService')
     @patch('handlers.initiate_bid.DatabaseService')
     def test_lambda_handler_email_send_failure(self, mock_db_service, mock_email_service,
-                                              mock_llm_service, mock_rails_api,
-                                              sample_lambda_context):
+                                                mock_llm_service, mock_rails_api,
+                                                sample_lambda_context):
         """Test bid initiation with email sending failure."""
         # Setup mocks
         mock_db = Mock()

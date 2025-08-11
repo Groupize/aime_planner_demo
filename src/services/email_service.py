@@ -37,7 +37,7 @@ class EmailService:
         self.reply_to_base = f"aime-{self.environment}+{{conversation_id}}@groupize.com"
 
     def send_vendor_email(self, to_email: str, subject: str, body: str,
-                         conversation_id: str, planner_name: str) -> bool:
+                          conversation_id: str, planner_name: str) -> bool:
         """Send email to vendor using SendGrid."""
         try:
             # Create reply-to address that includes conversation ID
@@ -162,7 +162,7 @@ class EmailService:
     def verify_ses_domain(self, domain: str) -> bool:
         """Verify domain with SES for email receiving."""
         try:
-            response = self.ses_client.verify_domain_identity(Domain=domain)
+            self.ses_client.verify_domain_identity(Domain=domain)
             print(f"Domain verification initiated for {domain}")
             return True
         except ClientError as e:
@@ -170,7 +170,7 @@ class EmailService:
             return False
 
     def setup_ses_receipt_rule(self, rule_set_name: str, rule_name: str,
-                              recipients: list, sns_topic_arn: str) -> bool:
+                               recipients: list, sns_topic_arn: str) -> bool:
         """Set up SES receipt rule for inbound email processing."""
         try:
             # Create receipt rule

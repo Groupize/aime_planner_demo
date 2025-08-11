@@ -83,7 +83,7 @@ class Conversation(BaseModel):
         return len(unanswered_required) == 0 or self.attempt_count >= self.max_attempts
 
     def add_email_exchange(self, direction: str, subject: str, body: str,
-                          questions_addressed: List[int] = None) -> None:
+                           questions_addressed: List[int] = None) -> None:
         """Add a new email exchange to the conversation."""
         if questions_addressed is None:
             questions_addressed = []

@@ -3,7 +3,6 @@ Database service for managing conversations and questions in DynamoDB.
 """
 
 import os
-import json
 import boto3
 from boto3.dynamodb.conditions import Key
 from datetime import datetime
@@ -127,7 +126,7 @@ class DatabaseService:
             return []
 
     def update_question_answer(self, conversation_id: str, question_id: int,
-                              answer: str) -> bool:
+                               answer: str) -> bool:
         """Update a specific question's answer."""
         try:
             self.questions_table.update_item(

@@ -6,12 +6,12 @@ import json
 import os
 import sys
 from typing import Dict, Any
-from datetime import datetime
 
 # Add src directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from models.conversation import Conversation, Question, EventMetadata, VendorInfo, ConversationStatus
+from models.conversation import (Conversation, Question, EventMetadata,
+                                VendorInfo, ConversationStatus)
 from services.database import DatabaseService
 from services.email_service import EmailService
 from services.llm_service import LLMService
@@ -176,7 +176,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     str(e),
                     {"handler": "initiate_bid"}
                 )
-        except:
+        except Exception:
             pass  # Don't fail on error reporting
 
         return {

@@ -2,10 +2,8 @@
 Unit tests for email service.
 """
 
-import pytest
 import json
-import re
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from botocore.exceptions import ClientError
 
 from services.email_service import EmailService

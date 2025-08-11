@@ -13,6 +13,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 # Set up test environment variables
 os.environ['ENVIRONMENT'] = 'testing'
+os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+os.environ['AWS_REGION'] = 'us-east-1'
+os.environ['AWS_ACCESS_KEY_ID'] = 'fake-access-key'
+os.environ['AWS_SECRET_ACCESS_KEY'] = 'fake-secret-key'
 os.environ['RAILS_API_BASE_URL'] = 'https://api-testing.example.com'
 os.environ['RAILS_API_KEY'] = 'test-api-key'
 os.environ['OPENAI_API_KEY'] = 'test-openai-key'

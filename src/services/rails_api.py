@@ -202,8 +202,8 @@ class RailsAPIService:
 
         for question in questions:
             # Handle both Question objects and dictionaries
-            if hasattr(question, 'dict'):
-                q_data = question.dict()
+            if hasattr(question, 'model_dump'):
+                q_data = question.model_dump()
             else:
                 q_data = question
 

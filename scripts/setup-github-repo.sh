@@ -7,7 +7,7 @@ set -e
 
 REPO_NAME="aime_planner_demo"
 ORG_NAME="Groupize"
-REPO_URL="https://github.com/${ORG_NAME}/${REPO_NAME}.git"
+REPO_URL="git@github.com:${ORG_NAME}/${REPO_NAME}.git"
 
 echo "🚀 Setting up GitHub repository for AIME Planner"
 echo "=" * 50
@@ -40,6 +40,22 @@ if ! gh auth status &> /dev/null; then
     echo "❌ Not authenticated with GitHub CLI."
     echo "Please run: gh auth login"
     exit 1
+fi
+
+# Check SSH access to GitHub
+echo "🔑 Checking SSH access to GitHub..."
+if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+    echo "✅ SSH access to GitHub confirmed"
+elif ssh -T git@github.com 2>&1 | grep -q "Permission denied"; then
+    echo "❌ SSH key not configured for GitHub"
+    echo "Please set up SSH key authentication:"
+    echo "1. Generate SSH key: ssh-keygen -t ed25519 -C \"your_email@example.com\""
+    echo "2. Add to ssh-agent: ssh-add ~/.ssh/id_ed25519"
+    echo "3. Add public key to GitHub: https://github.com/settings/keys"
+    exit 1
+else
+    echo "⚠️  Could not verify SSH access to GitHub"
+    echo "Proceeding anyway, but you may need to set up SSH keys if push fails"
 fi
 
 echo "✅ Prerequisites check passed"
@@ -122,7 +138,8 @@ echo ""
 echo "📋 Repository Details:"
 echo "   Organization: ${ORG_NAME}"
 echo "   Repository: ${REPO_NAME}"
-echo "   URL: ${REPO_URL}"
+echo "   SSH URL: ${REPO_URL}"
+echo "   HTTPS URL: https://github.com/${ORG_NAME}/${REPO_NAME}"
 echo "   Branch: main"
 echo ""
 echo "🔧 Next Steps:"

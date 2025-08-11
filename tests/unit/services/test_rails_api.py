@@ -4,6 +4,7 @@ Unit tests for Rails API service.
 
 from datetime import datetime
 from unittest.mock import Mock, patch
+import pytest
 import requests
 
 from services.rails_api import RailsAPIService
